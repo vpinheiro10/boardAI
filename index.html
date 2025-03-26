@@ -108,8 +108,8 @@
       input.value = '';
 
       try {
-        // 🔁 Substitua com o URL do seu webhook no Make
-        const response = await fetch('https://hook.us1.make.com/seu-webhook-aqui', {
+        // 🔁para comunicacao com o make
+        const response = await fetch('https://hook.us2.make.com/yum9jehs8s1m9smiko7y3m1jx1upq9pm', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -143,8 +143,8 @@
           const formData = new FormData();
           formData.append('audio', audioBlob, 'gravacao.webm');
 
-          // 🔁 Substitua com o webhook correto do Make
-          fetch('https://hook.us1.make.com/seu-webhook-aqui', {
+          // 🔁 Comunicacao com o Make
+          fetch('https://hook.us2.make.com/yum9jehs8s1m9smiko7y3m1jx1upq9pm', {
             method: 'POST',
             body: formData,
           }).then(() => {
