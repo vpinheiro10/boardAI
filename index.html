@@ -85,85 +85,119 @@
   </div>
 
   <script>
-    const chatBox = document.getElementById('chat');
-    const recordButton = document.getElementById('recordButton');
-    let mediaRecorder;
-    let audioChunks = [];
-    let isRecording = false;
+   const chatBox = document.getElementById('chat');
+const recordButton = document.getElementById('recordButton');
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
 
-    function addMessage(message, sender = 'Você') {
-      const msgElement = document.createElement('div');
-      msgElement.className = 'message';
-      msgElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatBox.appendChild(msgElement);
-      chatBox.scrollTop = chatBox.scrollHeight;
+function addMessage(message, sender = 'Você') {
+  const msgElement = document.createElement('div');
+  msgElement.className = 'message';
+  msgElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  chatBox.appendChild(msgElement);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const message = input.value.trim();
+  if (!message) return;
+
+  addMessage(message, 'Você');
+  input.value = '';
+
+  try {
+    const response = await fetch('https://hook.us2.make.com/yum9jehs8s1m9smiko7y3m1jx1upq9pm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro HTTP: ${response.status}`);
     }
 
-    async function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const message = input.value.trim();
-      if (!message) return;
-
-      addMessage(message, 'Você');
-      input.value = '';
-
-      try {
-        // 🔁para comunicacao com o make
-        const response = await fetch('https://hook.us2.make.com/yum9jehs8s1m9smiko7y3m1jx1upq9pm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ message }),
-        });
-
-        const data = await response.json();
-        if (data.reply) {
-          addMessage(data.reply, 'Bot');
-        }
-      } catch (error) {
-        console.error('Erro:', error);
-        addMessage('Erro ao enviar mensagem.', 'Sistema');
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      if (data.reply) {
+        addMessage(data.reply, 'Bot');
+      } else {
+        addMessage('Resposta vazia ou inesperada.', 'Sistema');
       }
+    } else {
+      addMessage('Resposta inválida do servidor.', 'Sistema');
     }
+  } catch (error) {
+    console.error('Erro ao processar resposta:', error);
+    addMessage('Erro técnico ao processar a resposta.', 'Sistema');
+  }
+}
 
-    recordButton.addEventListener('click', async () => {
-      if (!isRecording) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
+recordButton.addEventListener('click', async () => {
+  if (!isRecording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
 
-        mediaRecorder.ondataavailable = event => {
-          audioChunks.push(event.data);
-        };
+      mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+      };
 
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          audioChunks = [];
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioChunks = [];
 
-          const formData = new FormData();
-          formData.append('audio', audioBlob, 'gravacao.webm');
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'gravacao.webm');
 
-          // 🔁 Comunicacao com o Make
-          fetch('https://hook.us2.make.com/yum9jehs8s1m9smiko7y3m1jx1upq9pm', {
+        try {
+          const response = await fetch('https://hook.us2.make.com/yum9jehs8s1m9smiko7y3m1jx1upq9pm', {
             method: 'POST',
             body: formData,
-          }).then(() => {
-            addMessage('[Áudio enviado]', 'Você');
-          }).catch(err => {
-            alert('Erro ao enviar áudio.');
-            console.error(err);
           });
-        };
 
-        mediaRecorder.start();
-        isRecording = true;
-        recordButton.textContent = '⏹️';
-      } else {
-        mediaRecorder.stop();
-        isRecording = false;
-        recordButton.textContent = '🎤';
-      }
-    });
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            if (data.reply) {
+              addMessage('[Áudio enviado]', 'Você');
+              addMessage(data.reply, 'Bot');
+            } else {
+              addMessage('[Áudio enviado]', 'Você');
+              addMessage('Resposta vazia após o áudio.', 'Sistema');
+            }
+          } else {
+            addMessage('[Áudio enviado]', 'Você');
+            addMessage('Resposta inválida após o áudio.', 'Sistema');
+          }
+        } catch (error) {
+          console.error('Erro ao enviar áudio:', error);
+          addMessage('Erro técnico ao processar o áudio.', 'Sistema');
+        }
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+      recordButton.textContent = '⏹️';
+    } catch (err) {
+      console.error('Erro ao iniciar gravação:', err);
+      alert('Não foi possível acessar o microfone.');
+    }
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+    recordButton.textContent = '🎤';
+  }
+});
+
   </script>
 </body>
 </html>
