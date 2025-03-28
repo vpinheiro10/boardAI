@@ -16,7 +16,7 @@ app.post("/chat", async (req, res) => {
   if (!userMessage) return res.status(400).json({ error: "Mensagem não fornecida." });
 
   try {
-    // Cria uma nova thread
+    console.log("Criando thread...");
     const threadRes = await fetch("https://api.openai.com/v1/threads", {
       method: "POST",
       headers: {
@@ -27,8 +27,9 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({}),
     });
     const thread = await threadRes.json();
+    console.log("Thread criada:", thread);
 
-    // Envia a mensagem do usuário
+    console.log("Enviando mensagem...");
     await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
       method: "POST",
       headers: {
@@ -42,7 +43,7 @@ app.post("/chat", async (req, res) => {
       }),
     });
 
-    // Inicia a execução
+    console.log("Iniciando execução...");
     const runRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs`, {
       method: "POST",
       headers: {
@@ -53,9 +54,10 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({ assistant_id: ASSISTANT_ID }),
     });
     const run = await runRes.json();
+    console.log("Run iniciada:", run);
 
-    // Aguarda até o run ser completado
     let status = "queued", runData;
+    console.log("Aguardando execução...");
     do {
       await new Promise((r) => setTimeout(r, 1500));
       const statusRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
@@ -66,9 +68,10 @@ app.post("/chat", async (req, res) => {
       });
       runData = await statusRes.json();
       status = runData.status;
+      console.log("Status atual:", status);
     } while (status !== "completed");
 
-    // Busca a resposta
+    console.log("Buscando mensagens...");
     const messagesRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
       headers: {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -76,6 +79,8 @@ app.post("/chat", async (req, res) => {
       },
     });
     const messages = await messagesRes.json();
+    console.log("Mensagens recebidas:", JSON.stringify(messages, null, 2));
+
     const reply = messages?.data?.find((m) => m.role === "assistant")?.content?.[0]?.text?.value || "Sem resposta.";
 
     res.json({ reply });
