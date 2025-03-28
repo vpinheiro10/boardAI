@@ -136,8 +136,10 @@
       typingIndicator.style.display = 'block';
 
       try {
+        console.log('Criando thread...');
         const thread = await fetch('https://api.openai.com/v1/threads', {
           method: 'POST',
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer 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',
@@ -146,8 +148,10 @@
           body: JSON.stringify({})
         }).then(res => res.json());
 
+        console.log('Enviando mensagem do usuário...');
         await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
           method: 'POST',
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer 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',
@@ -159,8 +163,10 @@
           })
         });
 
+        console.log('Criando execução do assistant...');
         const run = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs`, {
           method: 'POST',
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer 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',
@@ -171,20 +177,25 @@
           })
         }).then(res => res.json());
 
+        console.log('Aguardando conclusão da execução...');
         let status;
         let runResult;
         do {
           await new Promise(r => setTimeout(r, 2000));
           runResult = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
+            cache: 'no-store',
             headers: {
               'Authorization': 'Bearer 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',
               'OpenAI-Beta': 'assistants=v2'
             }
           }).then(res => res.json());
+          console.log('Status atual:', runResult.status);
           status = runResult.status;
         } while (status !== 'completed');
 
+        console.log('Buscando mensagens...');
         const messages = await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
+          cache: 'no-store',
           headers: {
             'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
