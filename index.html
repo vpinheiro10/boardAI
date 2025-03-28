@@ -4,7 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bot da Ética e-Core</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Google Fonts com bust de cache dinâmico -->
+  <script>
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    const version = new Date().getTime();
+    fontLink.href = `https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap&v=${version}`;
+    document.head.appendChild(fontLink);
+  </script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -101,7 +110,7 @@
 </head>
 <body>
   <header>
-    <img src="https://www.ecore.com/assets/img/logo.svg" alt="Logo e-Core" />
+    <img src="https://www.ecore.com.br/wp-content/themes/ecore/img/logo.svg" alt="Logo e-Core" />
     Bot da Ética e-Core
   </header>
   <div id="chat"></div>
@@ -136,25 +145,23 @@
       typingIndicator.style.display = 'block';
 
       try {
-        console.log('Criando thread...');
         const thread = await fetch('https://api.openai.com/v1/threads', {
           method: 'POST',
           cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer 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',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           },
           body: JSON.stringify({})
         }).then(res => res.json());
 
-        console.log('Enviando mensagem do usuário...');
         await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
           method: 'POST',
           cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer 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',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           },
           body: JSON.stringify({
@@ -163,13 +170,12 @@
           })
         });
 
-        console.log('Criando execução do assistant...');
         const run = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs`, {
           method: 'POST',
           cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer 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',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           },
           body: JSON.stringify({
@@ -177,7 +183,6 @@
           })
         }).then(res => res.json());
 
-        console.log('Aguardando conclusão da execução...');
         let status;
         let runResult;
         do {
@@ -185,26 +190,23 @@
           runResult = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
             cache: 'no-store',
             headers: {
-              'Authorization': 'Bearer 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',
+              'Authorization': 'Bearer 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',
               'OpenAI-Beta': 'assistants=v2'
             }
           }).then(res => res.json());
-          console.log('Status atual:', runResult.status);
           status = runResult.status;
         } while (status !== 'completed');
 
-        console.log('Buscando mensagens...');
         const messages = await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
           cache: 'no-store',
           headers: {
-            'Authorization': 'Bearer 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',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           }
         }).then(res => res.json());
 
         const reply = messages.data.find(m => m.role === 'assistant')?.content[0]?.text?.value || 'Sem resposta.';
         typingIndicator.style.display = 'none';
-        console.log('Resposta final:', reply);
         addMessage(reply, 'bot');
 
       } catch (error) {
