@@ -8,7 +8,7 @@
   <style>
     * {
       box-sizing: border-box;
-    } 
+    }
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
@@ -26,6 +26,12 @@
       font-size: 1.5rem;
       color: #004680;
       margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header img {
+      height: 32px;
     }
     #chat {
       background-color: #fff;
@@ -85,11 +91,21 @@
     button:hover {
       background-color: #00355d;
     }
+    #typingIndicator {
+      font-style: italic;
+      color: #888;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-  <header>Bot da Ética e-Core</header>
+  <header>
+    <img src="https://www.ecore.com/assets/img/logo.svg" alt="Logo e-Core" />
+    Bot da Ética e-Core
+  </header>
   <div id="chat"></div>
+  <div id="typingIndicator" style="display:none">Digitando...</div>
   <div class="input-area">
     <input type="text" id="messageInput" placeholder="Digite sua mensagem..." />
     <button onclick="sendMessage()">Enviar</button>
@@ -98,6 +114,7 @@
   <script>
     const chatBox = document.getElementById('chat');
     const input = document.getElementById('messageInput');
+    const typingIndicator = document.getElementById('typingIndicator');
 
     function addMessage(message, sender = 'bot') {
       const div = document.createElement('div');
@@ -116,13 +133,14 @@
 
       addMessage(message, 'user');
       input.value = '';
+      typingIndicator.style.display = 'block';
 
       try {
         const thread = await fetch('https://api.openai.com/v1/threads', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer SUA_CHAVE_OPENAI',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           },
           body: JSON.stringify({})
@@ -132,7 +150,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer SUA_CHAVE_OPENAI',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           },
           body: JSON.stringify({
@@ -145,11 +163,11 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer SUA_CHAVE_OPENAI',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           },
           body: JSON.stringify({
-            assistant_id: 'SEU_ASSISTANT_ID'
+            assistant_id: 'asst_EEJLSUUhCdEbA0sDCY1J2S7j'
           })
         }).then(res => res.json());
 
@@ -159,7 +177,7 @@
           await new Promise(r => setTimeout(r, 2000));
           runResult = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
             headers: {
-              'Authorization': 'Bearer SUA_CHAVE_OPENAI',
+              'Authorization': 'Bearer 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',
               'OpenAI-Beta': 'assistants=v2'
             }
           }).then(res => res.json());
@@ -168,15 +186,18 @@
 
         const messages = await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
           headers: {
-            'Authorization': 'Bearer SUA_CHAVE_OPENAI',
+            'Authorization': 'Bearer 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',
             'OpenAI-Beta': 'assistants=v2'
           }
         }).then(res => res.json());
 
         const reply = messages.data.find(m => m.role === 'assistant')?.content[0]?.text?.value || 'Sem resposta.';
+        typingIndicator.style.display = 'none';
+        console.log('Resposta final:', reply);
         addMessage(reply, 'bot');
 
       } catch (error) {
+        typingIndicator.style.display = 'none';
         console.error('Erro:', error);
         addMessage('Erro ao processar sua pergunta. Tente novamente mais tarde.', 'bot');
       }
